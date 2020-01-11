@@ -4,11 +4,11 @@
   "description": "MakkeBot Made for me :)",
   "main": "bot.js",
   "dependencies": {
+    "axios": "^0.19.1",
     "discord.js": "^11.5.1",
     "ffmpeg": "0.0.4",
     "glob": "^7.1.6",
-    "opusscript": "0.0.7",
-    "request": "^2.88.0"
+    "opusscript": "0.0.7"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
