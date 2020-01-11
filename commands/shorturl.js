@@ -4,37 +4,30 @@ const _1uApi = require('../1uapi');
  * Command information.
  */
 const info = {
-	name: 'short',
-	desc: 'Shortens given url.'
+    name: 'short',
+    desc: 'Shortens given url.',
 };
 
 /**
  * Sends given url as shortened to the user.
- * 
+ *
  * @param {Discord.Client} client Bot client
- * @param {string[]} arguments Command arguments
+ * @param {string[]} args Command args
  * @param {Discord.Message} message Message that contained the command.
  */
-const execute = (client, arguments, message) => {
-	// If there is less than 1 argument given.
-	if (arguments.length < 1) {
-		message.reply('Error: Give url to shorten!');
-		return;
-	}
+const execute = async (client, args, message) => {
+    // If there is less than 1 argument given.
+    if (args.length < 1) {
+        message.reply('Error: Give url to shorten!');
+        return;
+    }
 
-	// First argument (arguments[0]) is url to shorten.
-	// !short <url_here> <-- is the first in the argument list.
-	// createShortUrl returns callback with JSON response from API.
-	_1uApi.createShortUrl(arguments[0], (response) => {
-
-		// API told us that there was an error.
-		if (response.error) {
-			message.reply(`API Error: ${response.msg}`);
-		} else {
-			// Everything went good, send shortened url.
-			message.reply(`Here is your url shortened! ${response.short}`);
-		}
-	});
+    try {
+        message.reply(await _1uApi(args[0]));
+    } catch (error) {
+        console.error(error);
+        message.reply('Error occurred while shortening the URL');
+    }
 };
 
-module.exports = { info: info, execute: execute };
+module.exports = {info: info, execute: execute};
