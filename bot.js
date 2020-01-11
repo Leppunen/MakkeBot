@@ -1,5 +1,5 @@
 // secret stuff etc credentials
-const credentials = require('./credentials');
+const config = require('./config.js');
 
 // Get Discord module
 const Discord = require('discord.js');
@@ -13,84 +13,98 @@ const glob = require('glob');
 // Get path module.
 const path = require('path');
 
+// Updater
+const updater = require('./updater');
+
 // List of all available commands.
 const commands = {};
 
+// Prefix
+const prefix = '!';
+
+
 // Load all commands from ./commands directory.
 glob.sync('./commands/**/*.js').forEach((file) => {
-	let cmd = require(path.resolve(file));
-	commands[cmd.info.name] = cmd;
+    const cmd = require(path.resolve(file));
+    commands[cmd.info.name] = cmd;
 });
 
-// Credentials for login
-client.login(credentials.discordToken);
+
+// Initialize the bot
+async function initialize() {
+    try {
+        await updater();
+        await client.login(config.discordToken);
+    } catch (error) {
+        console.error(`Error occurred while initializing the bot: ${error}`);
+    }
+}
+
+initialize();
 
 // When turned on and ready
 client.on('ready', () => {
-	console.log('I am ready to work!');
+    console.log('I am ready to work!');
 
-	// Alternatively, you can set the activity to any of the following:
-	// PLAYING, STREAMING, LISTENING, WATCHING
-	// For example:
-	client.user.setActivity('Twitch', {type: 'WATCHING'});
+    // Alternatively, you can set the activity to any of the following:
+    // PLAYING, STREAMING, LISTENING, WATCHING
+    // For example:
+    // client.user.setActivity('Twitch', {type: 'WATCHING'});
 
-	
-	const devChannels = [
-		// Jokke's development channel
-		'632975056590602260',
-		// Makke server general channel
-		'664077701140709440'
-	];
 
-	const pjson = require('./package.json');
+    const devChannels = [
+        '651071965137731590',
+    ];
 
-	devChannels.forEach((id) => {
-		const channel = client.channels.get(id);
-		if (channel) channel.send(`I'm online! :) Current version: ${pjson.version}`);
-	});
+    const pjson = require('./package.json');
+
+    devChannels.forEach((id) => {
+        const channel = client.channels.get(id);
+        if (channel) channel.send(`I'm online! :) Current version: ${pjson.version}`);
+    });
 });
 
-// Create an event listener for new guild members
+/* // Create an event listener for new guild members
 client.on('guildMemberAdd', (member) => {
-	// Send the message to a designated channel on a server:
-	const channel = member.guild.channels.find(ch => ch.name === 'member-log');
-	// Do nothing if the channel wasn't found on this server
-	if (!channel) return;
-	// Send the message, mentioning the member
-	channel.send(`Welcome to the server, ${member}`);
-});
+    // Send the message to a designated channel on a server:
+    const channel = member.guild.channels.find((ch) => ch.name === 'member-log');
+    // Do nothing if the channel wasn't found on this server
+    if (!channel) return;
+    // Send the message, mentioning the member
+    channel.send(`Welcome to the server, ${member}`);
+}); */
 
 // When receiving message
 client.on('message', (message) => {
+    // Only handle messages from guilds.
+    if (!message.guild) return;
 
-	// Only handle messages from guilds.
-	if (!message.guild) return;
+    // Prevent bot from responding to its own messages.
+    if (message.author === client.user) return;
 
-	// Prevent bot from responding to its own messages.
-	if (message.author == client.user) return;
-
-	// Message starts with '!' so it's an command.
-	if (message.content.startsWith('!')) {
-		processCommand(message);
-	}
+    // Message starts with the prefix so it's an command.
+    if (message.content.startsWith(prefix)) {
+        processCommand(message);
+    }
 });
 
 const processCommand = (message) => {
-	// Remove first character '!' and split the message up in to pieces by each space
-	let splittedMessage = message.content.substr(1).split(' ');
+    const content = message.content.split(/\s+/g);
+    const command = content[0];
+    const commandName = command.slice(prefix.length);
+    const args = content.slice(1);
 
-	// The first word directly after the exclamation is the command
-	let commandName = splittedMessage[0];
+    // Commands contains commandName.
+    if (commandName in commands) {
+        // Execute command!
+        commands[commandName].execute(client, args, message);
+        return;
+    }
 
-	// All other words are arguments for the command
-	let arguments = splittedMessage.slice(1);
-
-	// Commands contains commandName.
-	if (commandName in commands) {
-		// Execute command!
-		commands[commandName].execute(client, arguments, message);
-		return;
-	}
-
-	message.reply(`Command: ${commandName} doesn't exist. You can use '!help' to find more about commands!`);
+    message.reply(`Command: ${commandName} doesn't exist. You can use '!help' to find more about commands!`);
 };
+
+// Run updater every 5 minutes
+setInterval(async () => {
+    await updater();
+}, 300000);
