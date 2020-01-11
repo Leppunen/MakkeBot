@@ -5,26 +5,26 @@ const path = require('path');
  * Command information.
  */
 const info = {
-	name: 'help',
-	desc: 'Lists all commands.'
+    name: 'help',
+    desc: 'Lists all commands.',
 };
 
 /**
  * Sends all commands to the user.
- * 
+ *
  * @param {Discord.Client} client Bot client
- * @param {string[]} arguments Command arguments
+ * @param {string[]} args Command args
  * @param {Discord.Message} message Message that contained the command.
  */
-const execute = (client, arguments, message) => {
-	let msg = '';
-	glob.sync('./commands/**/*.js').forEach((file) => {
-		let cmd = require(path.resolve(file));
-		msg += `!${cmd.info.name} -- ${cmd.info.desc}\n`;
-	});
+const execute = (client, args, message) => {
+    let msg = '';
+    glob.sync('./commands/**/*.js').forEach((file) => {
+        const cmd = require(path.resolve(file));
+        msg += `!${cmd.info.name} -- ${cmd.info.desc}\n`;
+    });
 
-	message.reply(msg);
+    message.reply(msg);
 };
 
 
-module.exports = { info: info, execute: execute };
+module.exports = {info: info, execute: execute};
