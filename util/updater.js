@@ -5,7 +5,7 @@ const exec = util.promisify(require('child_process').exec);
 const url = require('../config.js').giturl;
 
 module.exports = async () => {
-    const localVer = (require('./package.json')).version;
+    const localVer = (require('../package.json')).version;
     try {
         const {data: {version: remoteVer}} = (await axios(url));
         if (remoteVer === localVer) {
