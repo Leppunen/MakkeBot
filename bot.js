@@ -14,7 +14,7 @@ const glob = require('glob');
 const path = require('path');
 
 // Updater
-const updater = require('./updater');
+const updater = require('./util/updater');
 
 // Commands and aliases
 const commands = new Map();

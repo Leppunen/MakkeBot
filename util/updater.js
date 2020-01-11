@@ -2,7 +2,7 @@ const axios = require('axios');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-const url = require('./config.js').giturl;
+const url = require('../config.js').giturl;
 
 module.exports = async () => {
     const localVer = (require('./package.json')).version;

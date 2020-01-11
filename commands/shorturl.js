@@ -1,4 +1,4 @@
-const _1uApi = require('../1uapi');
+const _1uApi = require('../util/1uapi');
 
 /**
  * Command information.

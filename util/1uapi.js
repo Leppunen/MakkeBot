@@ -1,5 +1,5 @@
 // secret stuff etc credentials
-const config = require('./config.js');
+const config = require('../config.js');
 
 const axios = require('axios');
 
