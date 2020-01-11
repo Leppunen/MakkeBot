@@ -72,16 +72,11 @@ client.on('ready', () => {
     // PLAYING, STREAMING, LISTENING, WATCHING
     // For example:
 
-    // client.user.setActivity('Twitch', {type: 'WATCHING'});
-
-
-    const devChannels = [
-        '651071965137731590',
-    ];
+    client.user.setActivity('Twitch', {type: 'WATCHING'});
 
     const pjson = require('./package.json');
 
-    devChannels.forEach((id) => {
+    config.devChannels.forEach((id) => {
         const channel = client.channels.get(id);
         if (channel) channel.send(`I'm online! :) Current version: ${pjson.version}`);
     });
