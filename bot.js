@@ -16,24 +16,46 @@ const path = require('path');
 // Updater
 const updater = require('./updater');
 
-// List of all available commands.
-const commands = {};
+// Commands and aliases
+const commands = new Map();
+const aliases = new Map();
 
 // Prefix
 const prefix = '!';
 
 
-// Load all commands from ./commands directory.
-glob.sync('./commands/**/*.js').forEach((file) => {
-    const cmd = require(path.resolve(file));
-    commands[cmd.info.name] = cmd;
-});
+// Load all commands and aliases if defined
 
+async function loadCmd() {
+    return new Promise((resolve, reject) => {
+        commands.clear();
+        aliases.clear();
+        glob.sync('./commands/**/*.js').forEach((f) => {
+            try {
+                delete require.cache[`${path.resolve(f)}`];
+                const cmd = require(`${path.resolve(f)}`);
+                commands.set(cmd.info.name, cmd);
+                if (cmd.info.aliases) {
+                    cmd.info.aliases.forEach((alias) => {
+                        aliases.set(alias, cmd.info.name);
+                    });
+                }
+            } catch (e) {
+                e.filename = f;
+                console.error(`Failed to load command file ${f}, Error: ${e}`);
+                return reject(e);
+            }
+        });
+        console.log(`Loaded ${commands.size} commands!`);
+        return resolve(true);
+    });
+}
 
 // Initialize the bot
 async function initialize() {
     try {
         await updater();
+        await loadCmd();
         await client.login(config.discordToken);
     } catch (error) {
         console.error(`Error occurred while initializing the bot: ${error}`);
@@ -49,6 +71,7 @@ client.on('ready', () => {
     // Alternatively, you can set the activity to any of the following:
     // PLAYING, STREAMING, LISTENING, WATCHING
     // For example:
+
     // client.user.setActivity('Twitch', {type: 'WATCHING'});
 
 
@@ -64,7 +87,7 @@ client.on('ready', () => {
     });
 });
 
-/* // Create an event listener for new guild members
+// Create an event listener for new guild members
 client.on('guildMemberAdd', (member) => {
     // Send the message to a designated channel on a server:
     const channel = member.guild.channels.find((ch) => ch.name === 'member-log');
@@ -72,7 +95,7 @@ client.on('guildMemberAdd', (member) => {
     if (!channel) return;
     // Send the message, mentioning the member
     channel.send(`Welcome to the server, ${member}`);
-}); */
+});
 
 // When receiving message
 client.on('message', (message) => {
@@ -94,14 +117,12 @@ const processCommand = (message) => {
     const commandName = command.slice(prefix.length);
     const args = content.slice(1);
 
-    // Commands contains commandName.
-    if (commandName in commands) {
-        // Execute command!
-        commands[commandName].execute(client, args, message);
-        return;
+    const cmd = commands.get(commandName) || commands.get(aliases.get(commandName));
+    if (cmd) {
+        cmd.execute(client, args, message);
+    } else {
+        message.reply(`Command: ${commandName} doesn't exist. You can use '!help' to find more about commands!`);
     }
-
-    message.reply(`Command: ${commandName} doesn't exist. You can use '!help' to find more about commands!`);
 };
 
 // Run updater every 5 minutes
