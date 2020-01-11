@@ -1,6 +1,6 @@
 {
   "name": "makkebot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "MakkeBot Made for me :)",
   "main": "bot.js",
   "dependencies": {
